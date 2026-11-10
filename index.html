@@ -69,8 +69,8 @@ button.b{background:var(--ac2);color:#fff}button.o{background:transparent;color:
 <div><label>音律</label><select id="tun"><option value="et">十二平均律</option><option value="py">ピタゴラス音律</option></select></div></div>
 <label>開始する桁：<span id="sv">0</span></label><input type="range" id="st" min="0" max="60" value="0">
 <div class="g"><div><label>長さ</label><select id="len"><option value="2">短い（2小節）</option><option value="4" selected>ふつう（4小節）</option><option value="8">長い（8小節）</option><option value="16">とても長い（16小節）</option><option value="32">最長（32小節）</option></select></div><div><label>音色</label><select id="ins"><option value="">ジャンル標準</option><option value="sine">やわらか</option><option value="triangle">まろやか</option><option value="sawtooth">シンセ</option><option value="square">8bit</option></select></div></div><label>テンポ：<span id="bv"></span> BPM</label><input type="range" id="bpm" min="60" max="180">
-<label>小節数（自分で決める）：<span id="bsv">4</span>小節</label><input type="range" id="bars" min="1" max="32" value="4"><label>歌詞テーマ</label><select id="th"><option>夜</option><option>海</option><option>恋</option><option>旅</option><option>空</option><option>森</option></select>
-<label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞（ひらがな）の音を1音ずつメロディーに割り当てて、全文を歌います。</p><label>🔁 リフレイン（曲の構成としての繰り返し）</label><select id="ref"><option value="0">なし</option><option value="1">メロディーを2回くり返す</option><option value="2">メロディーを3回くり返す</option><option value="3">サビ（後半）をもう一度くり返す</option></select><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
+<label>小節数（自分で決める）：<span id="bsv">4</span>小節</label><input type="range" id="bars" min="1" max="32" value="4"><label>歌詞テーマ</label><select id="th"><option>夜</option><option>海</option><option>恋</option><option>旅</option><option>空</option><option>森</option></select><label>歌詞の言語</label><select id="lng"><option value="ja">日本語（ひらがな）</option><option value="en">English</option></select>
+<label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞の音を1音ずつメロディーに割り当てて、全文を歌います。英語の歌詞は、カタカナ英語に近い近似の発音で歌います。</p><label>🔁 リフレイン（曲の構成としての繰り返し）</label><select id="ref"><option value="0">なし</option><option value="1">メロディーを2回くり返す</option><option value="2">メロディーを3回くり返す</option><option value="3">サビ（後半）をもう一度くり返す</option></select><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
 
 <div class="c"><details><summary>🎛 詳細設定（ミキサー・エフェクト・構成）</summary>
 <label>メロディー音量：<span id="v-mix-mel">100</span>%</label><input type="range" id="mix-mel" min="0" max="150" value="100">
@@ -140,6 +140,7 @@ function digs(){let s=$("num").value=="自由入力"?$("cust").value.replace(/\D
 const F={"π":"円周÷直径。18世紀にランベルトが無理数と証明、1882年にリンデマンが超越数と証明しました。","e":"複利計算から生まれた数。1737年にオイラーが無理数と証明しました。","√2":"正方形の対角線の比。ピタゴラス教団を悩ませたと伝わる、最初の無理数です。","√3":"正三角形の高さに現れる数（高さ＝一辺×√3÷2）。","φ":"黄金比（1+√5）÷2。フィボナッチ数の比で近づけます。","自由入力":"好きな数字の並び（誕生日など）で曲を作れます。"};
 function ui(){$("fact").textContent="💡 "+F[$("num").value];const c=$("num").value=="自由入力";$("cust").style.display=$("cl").style.display=c?"block":"none";const g=G[$("gen").value];$("bv").textContent=$("bpm").value;$("sv").textContent=$("st").value;const s=digs(),a=+$("st").value;$("digits").innerHTML=(c?"":INT[$("num").value]+".")+s.slice(0,a)+"<b>"+s.slice(a,a+32)+"</b>"+s.slice(a+32,a+48)+"…"}
 $("gen").onchange=()=>{$("bpm").value=G[$("gen").value].b;ui()};
+$("lng").onchange=$("th").onchange=()=>{$("lyr").innerHTML=lyrics()};
 $("len").onchange=()=>{$("bars").value=$("len").value;$("bsv").textContent=$("bars").value};
 $("bars").oninput=()=>{$("bsv").textContent=$("bars").value;const o=[...$("len").options].find(x=>x.value==$("bars").value);if(o)$("len").value=o.value};
 ["num","cust","st","bpm"].forEach(i=>$(i).oninput=ui);
@@ -160,7 +161,38 @@ const fm=$("form").value;
 if(fm=="intro"||fm=="both")notes.forEach(n=>{if(n.t<8)n.rest=true});
 if(fm=="outro"||fm=="both")notes.forEach(n=>{if(n.t>=TOTAL-8)n.rest=true});
 return {notes,chords}}
-function lyrics(){const s=digs(),a=+$("st").value,pool=TH[$("th").value],nm=$("num").value,g=G[$("gen").value];let p=a+5;const nx=m=>{const d=+s[p++%s.length];return d%m};
+const W=(t,...sy)=>({t,sy:sy.map(a=>({t:a[0],v:a[1],x:a[2]||null}))});
+const ENTH={"夜":[W("star",["s","a","r"]),W("moon",["m","u","n"]),W("night",["n","ai"]),W("dream",["t","i","m"]),W("shadow",["s","a"],["t","o"]),W("comet",["t","o"],["m","e"])],
+"海":[W("sea",["s","i"]),W("wave",["h","ei"]),W("shore",["s","o","r"]),W("foam",["h","o","m"]),W("sail",["s","ei"]),W("deep",["t","i"])],
+"恋":[W("heart",["h","a"]),W("kiss",["t","i"]),W("promise",["t","o"],["m","i"]),W("smile",["s","ai"]),W("tears",["t","i","r"]),W("letter",["v","e"],["t","a"])],
+"旅":[W("road",["v","o"]),W("wind",["h","i","n"]),W("town",["t","au","n"]),W("journey",["t","a"],["n","i"]),W("miles",["m","ai"]),W("station",["s","ei"],["s","o","n"])],
+"空":[W("sky",["s","ai"]),W("cloud",["t","au"]),W("bird",["h","a"]),W("rainbow",["v","ei","n"],["h","o"]),W("feather",["h","e"],["s","a"]),W("breeze",["t","i"])],
+"森":[W("tree",["t","i"]),W("leaf",["v","i"]),W("moss",["m","o"]),W("brook",["t","u"]),W("owl",["v","au"]),W("fern",["h","a","n"])]};
+const ENAJ=[W("endless",["v","e","n"],["v","e"]),W("gentle",["s","e","n"],["t","o"]),W("lonely",["v","o","n"],["v","i"]),W("tender",["t","e","n"],["t","a"]),W("distant",["t","i"],["s","a","n"]),W("silent",["s","ai"],["v","e","n"]),W("golden",["t","o"],["t","e","n"]),W("infinite",["v","i","n"],["h","i"],["n","i"])];
+const ENVB=[[W("is",["v","i"]),W("shining",["s","ai"],["n","i"])],[W("is",["v","i"]),W("calling",["t","o"],["v","i"])],[W("is",["v","i"]),W("dancing",["t","a"],["n","i"])],[W("keeps",["t","i"]),W("turning",["t","a"],["n","i"])],[W("is",["v","i"]),W("breathing",["t","i"],["s","i"])],[W("never",["n","e"],["h","a"]),W("ends",["v","e","n"])],[W("is",["v","i"]),W("glowing",["t","o"],["h","i"])],[W("drifts",["t","i"]),W("away",["v","a"],["h","ei"])]];
+const ENMOOD={"ポップ":W("bright",["t","ai"]),"ジャズ":W("blue",["t","u"]),"ローファイ":W("mellow",["m","e"],["v","o"]),"クラシック":W("grand",["t","a","n"]),"ロック":W("wild",["h","ai"]),"演歌":W("deep",["t","i"]),"テクノ":W("electric",["v","i"],["v","e"],["t","i"]),"ゲーム":W("playful",["t","ei"],["h","u"])};
+const ENNAME={"π":W("Pi",["t","ai"]),"e":W("e",["v","i"]),"√2":W("Root two",["v","u"],["t","u"]),"√3":W("Root three",["v","u"],["s","i"]),"φ":W("Phi",["h","i"]),"自由入力":W("Numbers",["n","a"],["m","a"]),"誕生日":W("Your day",["h","o"],["t","ei"])};
+const THE={t:"the",sy:[{t:"s",v:"a",x:null}]},AND={t:"and",sy:[{t:"v",v:"a",x:"n"}]},IN={t:"in",sy:[{t:"v",v:"i",x:"n"}]},HOLD={t:"hold",sy:[{t:"h",v:"o",x:null}]},CLOSE={t:"close",sy:[{t:"t",v:"o",x:null}]},MELODY={t:"melody",sy:[{t:"m",v:"e",x:null},{t:"v",v:"o",x:null},{t:"t",v:"i",x:null}]},FOREVER={t:"forever",sy:[{t:"h",v:"o",x:null},{t:"v",v:"e",x:null},{t:"h",v:"a",x:null}]};
+let ENPH=[];
+function lyricsEn(){const s=digs(),a=+$("st").value,pool=ENTH[$("th").value],g=G[$("gen").value];let p=a+5;const nx=m=>{const d=+s[p++%s.length];return d%m};
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const line=()=>{const t=nx(4),A=ENAJ[nx(ENAJ.length)],n1=pool[nx(pool.length)],n2=pool[nx(pool.length)],V=ENVB[nx(ENVB.length)];
+const vt=V.map(w=>w.t).join(" "),vp=V.flatMap(w=>w.sy);
+if(t==0)return{d:cap(`the ${A.t} ${n1.t} ${vt}`),ph:[...THE.sy,...A.sy,...n1.sy,...vp]};
+if(t==1)return{d:cap(`${n1.t} and ${n2.t}`),ph:[...n1.sy,...AND.sy,...n2.sy]};
+if(t==2)return{d:cap(`${n1.t} ${vt}`),ph:[...n1.sy,...vp]};
+return{d:cap(`hold the ${A.t} ${n1.t} close`),ph:[...HOLD.sy,...THE.sy,...A.sy,...n1.sy,...CLOSE.sy]}};
+const sec=(h,n)=>{const ls=Array.from({length:n},line);return{h:`<h4>${h}</h4>`+ls.map(l=>l.d).join("<br>"),ph:ls.flatMap(l=>l.ph)}};
+const sabi=()=>{const nm=ENNAME[$("num").value]||ENNAME["π"],md=ENMOOD[$("gen").value]||ENMOOD["ポップ"],n1=pool[nx(pool.length)],l1=line(),l2=line();
+return{h:`<h4>Chorus</h4>${nm.t}, the endless melody<br>${l1.d}<br>${l2.d}<br>In the ${md.t} ${n1.t}, forever`,
+ph:[...nm.sy,...THE.sy,...ENAJ[0].sy,...MELODY.sy,...l1.ph,...l2.ph,...IN.sy,...THE.sy,...md.sy,...n1.sy,...FOREVER.sy]}};
+const B=+$("bars").value,na=Math.min(12,Math.max(2,B)),nb=Math.min(6,Math.max(1,Math.round(B/2)));
+const A=sec("Verse",na),Bp=sec("Bridge",nb),C=sabi();let out=A.h+Bp.h+C.h,ph=[...A.ph,...Bp.ph,...C.ph];
+const mode=$("ref").value;
+if(mode=="1"||mode=="2"){const R=+mode;for(let r=0;r<R;r++){const Cx=sabi();out+=Cx.h.replace("<h4>Chorus</h4>","<h4>Chorus (again)</h4>");ph.push(...Cx.ph)}}
+else if(mode=="3"){const Cx=sabi();out+=Cx.h.replace("<h4>Chorus</h4>","<h4>Chorus (repeat)</h4>");ph.push(...Cx.ph)}
+ENPH=ph;return out}
+function lyrics(){if($("lng")&&$("lng").value=="en")return lyricsEn();const s=digs(),a=+$("st").value,pool=TH[$("th").value],nm=$("num").value,g=G[$("gen").value];let p=a+5;const nx=m=>{const d=+s[p++%s.length];return d%m};
 const line=()=>{const t=nx(4),A=AJ[nx(AJ.length)],n1=pool[nx(pool.length)],n2=pool[nx(pool.length)],v=VB[nx(VB.length)];
 return [`${A}${n1}が${v}`,`${n1}と${n2}のあいだで`,`${n1}は${v}`,`${A}${n1}をだきしめて`][t]};
 const sec=(h,n)=>`<h4>${h}</h4>`+Array.from({length:n},line).join("<br>");
@@ -200,26 +232,35 @@ m.chords.forEach(c=>{CURBUS="cho";c.tn.forEach(x=>tone(freq(x),t0+c.t*sp,sp*7.5,
 CURBUS="bas";for(let stp=0;stp<8;stp+=2)tone(freq(c.r-12+(stp==4?7:0)),t0+(c.t+stp)*sp,sp*1.7,"sine",.13)});
 CURBUS="drm";for(let t=0;t<N();t++){if(g.d&&t%4==0)kick(t0+t*sp);if(g.d>=1)hat(t0+t*sp,t%2?.028:.05);if((gn=="ポップ"||gn=="ロック")&&t%8==4)snare(t0+t*sp);if(g.d==2&&t%2==1)hat(t0+t*sp,.06)}CURBUS=null}
 const FORM={a:[730,1090,2440],i:[270,2290,3010],u:[300,870,2240],e:[530,1840,2480],o:[570,840,2410]};
-const VOICES={f:{scale:1.15,wave:"sawtooth",vib:.006},m:{scale:.82,wave:"sawtooth",vib:.005},c:{scale:1.38,wave:"sawtooth",vib:.004},r:{scale:1,wave:"square",vib:0}};
+const VOICES={f:{scale:1.06,f0:1.12,wave:"sawtooth",vib:.004},m:{scale:.9,f0:.8,wave:"sawtooth",vib:.0035},c:{scale:1.18,f0:1.3,wave:"sawtooth",vib:.003},r:{scale:1,f0:1,wave:"square",vib:0}};
 const KANA={};[["あa v","いi v","うu v","えe v","おo v","かa t","きi t","くu t","けe t","こo t","さa s","しi s","すu s","せe s","そo s","たa t","ちi t","つu t","てe t","とo t","なa n","にi n","ぬu n","ねe n","のo n","はa h","ひi h","ふu h","へe h","ほo h","まa n","みi n","むu n","めe n","もo n","やa v","ゆu v","よo v","らa v","りi v","るu v","れe v","ろo v","わa v","をo v","がa v","ぎi v","ぐu v","げe v","ごo v","ざa s","じi s","ずu s","ぜe s","ぞo s","だa t","ぢi t","づu t","でe t","どo t","ばa t","びi t","ぶu t","べe t","ぼo t","ぱa t","ぴi t","ぷu t","ぺe t","ぽo t","んu n"],
 ["アa v","イi v","ウu v","エe v","オo v","カa t","キi t","クu t","ケe t","コo t","サa s","シi s","スu s","セe s","ソo s","タa t","チi t","ツu t","テe t","トo t","ナa n","ニi n","ヌu n","ネe n","ノo n","ハa h","ヒi h","フu h","ヘe h","ホo h","マa n","ミi n","ムu n","メe n","モo n","ヤa v","ユu v","ヨo v","ラa v","リi v","ルu v","レe v","ロo v","ワa v","ヲo v","ガa v","ギi v","グu v","ゲe v","ゴo v","ザa s","ジi s","ズu s","ゼe s","ゾo s","ダa t","ヂi t","ヅu t","デe t","ドo t","バa t","ビi t","ブu t","ベe t","ボo t","パa t","ピi t","プu t","ペe t","ポo t","ンu n"]].flat().forEach(x=>{KANA[x[0]]={v:x[1],t:x[3]}});
-function lyricMorae(){const txt=$("lyr").innerText.split(/\n+/).map(x=>x.trim()).filter(x=>x&&!/^(Aメロ|Bメロ|サビ|リフレイン|サビ（くり返し）)$/.test(x)).join("");
+function lyricMorae(){if($("lng")&&$("lng").value=="en")return ENPH.slice();const txt=$("lyr").innerText.split(/\n+/).map(x=>x.trim()).filter(x=>x&&!/^(Aメロ|Bメロ|サビ|リフレイン|サビ（くり返し）)$/.test(x)).join("");
 const small="ゃゅょャュョァィゥェォ",out=[];let pv="a";
 for(const ch of txt){if(small.includes(ch))continue;if(ch=="ー"){out.push({v:pv,t:"v"});continue}if(ch=="っ"){out.push({v:pv,t:"gap"});continue}const k=KANA[ch];if(k){pv=k.v;out.push(k)}}return out}
-function voiceNote(f,t,d,mo,V,pf){const o=ctx.createOscillator();o.type=V.wave;
-if(pf>0){o.frequency.setValueAtTime(pf,t);o.frequency.exponentialRampToValueAtTime(f,t+.05)}else o.frequency.setValueAtTime(f,t);
-let lfo=null;if(V.vib>0){lfo=ctx.createOscillator();lfo.frequency.value=5.5;const lg=ctx.createGain();lg.gain.value=f*V.vib;lfo.connect(lg);lg.connect(o.frequency);lfo.start(t);lfo.stop(t+d+.05)}
-const g=ctx.createGain();const dl=mo.t=="s"?.07:mo.t=="h"?.06:mo.t=="t"?.045:0;const vs=t+dl,vd=Math.max(.08,d-dl);
-g.gain.setValueAtTime(0,vs);g.gain.linearRampToValueAtTime(.30,vs+.04);g.gain.setValueAtTime(.30,Math.max(vs+.04,vs+vd-.07));g.gain.exponentialRampToValueAtTime(.001,vs+vd);
-const fm=FORM[mo.v];[.95,.42,.18].forEach((gv,ix)=>{const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=fm[ix]*V.scale;bp.Q.value=ix==0?5:ix==1?7:9;const bg=ctx.createGain();bg.gain.value=gv;o.connect(bp);bp.connect(bg);bg.connect(g)});
+function voiceNote(f,t,d,mo,V,pf){if(mo.t=="gap")return pf;
+const o=ctx.createOscillator();o.type=V.wave;
+const jump=pf>0?Math.abs(Math.log2(f/pf)):0;
+if(pf>0&&jump<=.32&&d>=.18){o.frequency.setValueAtTime(pf,t);o.frequency.exponentialRampToValueAtTime(f,t+Math.min(.04,d*.25))}else o.frequency.setValueAtTime(f,t);
+let lfo=null;if(V.vib>0&&d>=.28){lfo=ctx.createOscillator();lfo.frequency.value=5.2;const lg=ctx.createGain();lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*V.vib,t+d*.45);lfo.connect(lg);lg.connect(o.frequency);lfo.start(t);lfo.stop(t+d+.05)}
+const cd=mo.t=="s"?Math.min(.055,d*.3):mo.t=="h"?Math.min(.045,d*.26):mo.t=="t"?Math.min(.03,d*.2):mo.t=="n"?Math.min(.05,d*.28):0;
+const vs=t+cd,vd=Math.max(.06,d-cd),vend=vs+vd;
+const g=ctx.createGain();g.gain.setValueAtTime(0,vs);g.gain.linearRampToValueAtTime(.34,vs+Math.min(.012,vd*.15));
+g.gain.setValueAtTime(.34,Math.max(vs+.02,vend-Math.min(.055,vd*.3)));g.gain.linearRampToValueAtTime(.001,vend);
+const v1=mo.v[0],v2=mo.v.length>1?mo.v[1]:null,fm1=FORM[v1],fm2=v2?FORM[v2]:null,fu=FORM.u;
+const bps=[.95,.45,.2].map((gv,ix)=>{const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.Q.value=ix==0?4.5:ix==1?6:8;
+bp.frequency.setValueAtTime(fm1[ix]*V.scale,vs);if(fm2)bp.frequency.linearRampToValueAtTime(fm2[ix]*V.scale,vs+vd*.75);
+if(mo.x){const tx=vs+vd*.68;bp.frequency.cancelScheduledValues(tx);bp.frequency.setValueAtTime((fm2?fm2[ix]:fm1[ix])*V.scale,tx);bp.frequency.linearRampToValueAtTime(fu[ix]*.92*V.scale,vend)}
+const bg=ctx.createGain();bg.gain.value=gv;o.connect(bp);bp.connect(bg);bg.connect(g);return bp});
+if(mo.x=="n"||mo.x=="r"){g.gain.cancelScheduledValues(vs+vd*.68);g.gain.setValueAtTime(.34,vs+vd*.68);g.gain.linearRampToValueAtTime(.16,vend)}
 g.connect(dest());o.start(t);o.stop(t+d+.05);
-if(mo.t=="s")noise(t,.09,.10,5200);else if(mo.t=="h")noise(t,.07,.07,1300);else if(mo.t=="t")noise(t,.035,.13,2600);
-else if(mo.t=="n"){const so=ctx.createOscillator(),sg=ctx.createGain(),lp=ctx.createBiquadFilter();so.type="sine";so.frequency.value=f;lp.type="lowpass";lp.frequency.value=520;sg.gain.setValueAtTime(.10,t);sg.gain.exponentialRampToValueAtTime(.001,t+Math.min(.12,d));so.connect(lp);lp.connect(sg);sg.connect(dest());so.start(t);so.stop(t+Math.min(.14,d+.02))}
+if(mo.t=="s")noise(t,Math.min(.06,d*.3),.05,5200);else if(mo.t=="h")noise(t,Math.min(.05,d*.26),.04,1300);else if(mo.t=="t")noise(t,.022,.08,2600);
+else if(mo.t=="n"){const so=ctx.createOscillator(),sg=ctx.createGain(),lp=ctx.createBiquadFilter();so.type="sine";so.frequency.value=f;lp.type="lowpass";lp.frequency.value=520;const nd=Math.min(.055,d*.3);sg.gain.setValueAtTime(.085,t);sg.gain.exponentialRampToValueAtTime(.001,t+nd);so.connect(lp);lp.connect(sg);sg.connect(dest());so.start(t);so.stop(t+nd+.02)}
 return f}
 let NOSING=false;
 function singSong(m,g,sp,t0){const vs=$("voice").value;if(vs=="off"||NOSING)return;const V=VOICES[vs];if(!V)return;const mo=lyricMorae();if(!mo.length)return;let mi=0,pf=0;
 const hum=+$("hum").value/100,swf=+$("swg").value/100;CURBUS="vox";
-m.notes.forEach((n,j)=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp*swf:0;const mm=mo[mi++%mo.length];pf=voiceNote(freq(n.semi),t0+n.t*sp+sw+(hz(j,1)-.5)*.024*hum,n.dur*sp*.96,mm,V,pf)});CURBUS=null}
+m.notes.forEach((n,j)=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp*swf:0;const mm=mo[mi++%mo.length];let f0=freq(n.semi)*V.f0;while(f0>400)f0/=2;while(f0<90)f0*=2;pf=voiceNote(f0,t0+n.t*sp+sw+(hz(j,1)-.5)*.024*hum,n.dur*sp*.96,mm,V,pf)});CURBUS=null}
 let LOOP=false;
 function play(){stop();const g=G[$("gen").value],m=build();notes=m.notes;draw();
 $("lyr").innerHTML=lyrics();
@@ -240,7 +281,7 @@ $("dly").oninput=()=>{$("v-dly").textContent=$("dly").value;if(FXN)FXN.dly.gain.
 $("cho").oninput=()=>{$("v-cho").textContent=$("cho").value;if(FXN)FXN.cho.gain.value=+$("cho").value/100*.5};
 $("hum").oninput=()=>{$("v-hum").textContent=$("hum").value};
 $("swg").oninput=()=>{$("v-swg").textContent=$("swg").value};
-const SETIDS=["num","gen","key","tun","st","len","bars","ins","bpm","th","voice","ref","prog","form","hum","swg","rev","dly","cho","mix-mel","mix-cho","mix-bas","mix-drm","mix-vox"];
+const SETIDS=["num","gen","key","tun","st","len","bars","ins","bpm","th","lng","voice","ref","prog","form","hum","swg","rev","dly","cho","mix-mel","mix-cho","mix-bas","mix-drm","mix-vox"];
 function psAll(){try{return JSON.parse(localStorage.getItem("imm-presets")||"{}")}catch(e){return{}}}
 function psList(){const p=psAll(),sel=$("pslist");sel.innerHTML="";Object.keys(p).forEach(n=>sel.add(new Option(n,n)))}
 $("pssave").onclick=()=>{const n=$("psname").value.trim();if(!n){$("psname").focus();return}const p=psAll(),v={};SETIDS.forEach(id=>v[id]=$(id).value);p[n]=v;localStorage.setItem("imm-presets",JSON.stringify(p));psList();$("pslist").value=n;$("pssave").textContent="保存しました";setTimeout(()=>$("pssave").textContent="保存",1500)};
