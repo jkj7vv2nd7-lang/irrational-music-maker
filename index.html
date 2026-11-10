@@ -40,9 +40,25 @@ button.b{background:var(--ac2);color:#fff}button.o{background:transparent;color:
 #kb i{flex:1;background:#fff;border-right:1px solid #ddd;position:relative}
 #kb i.bk{background:#333;border-right:1px solid #111;flex:.62;z-index:1}
 #kb i.on{background:var(--ac)}#kb i.bk.on{background:var(--ac)}
+.tboard{position:relative;overflow:hidden;background:linear-gradient(135deg,#262054,#3b2a74 55%,#262054);border:1px solid var(--ac);border-radius:16px;padding:20px 14px 30px;margin-bottom:12px;text-align:center}
+.tboard h1{font-size:23px;margin:0;color:#fff;position:relative;z-index:2;text-shadow:0 0 16px rgba(242,194,48,.5),0 2px 0 rgba(0,0,0,.3);letter-spacing:.03em;transition:text-shadow .4s}
+.tboard .s{color:#cfc8f5;margin:4px 0 0;position:relative;z-index:2}
+.tboard.live h1{text-shadow:0 0 26px rgba(242,194,48,.95),0 0 8px rgba(255,255,255,.6),0 2px 0 rgba(0,0,0,.3)}
+.eq{position:absolute;left:12px;right:12px;bottom:5px;height:24px;display:flex;align-items:flex-end;gap:3px;z-index:1}
+.eq i{flex:1;background:linear-gradient(to top,#b97f00,#f2c230);border-radius:2px 2px 0 0;height:25%;animation:eqb 1s ease-in-out infinite alternate}
+.eq i:nth-child(odd){animation-duration:.85s}.eq i:nth-child(3n){animation-duration:.65s}.eq i:nth-child(4n){animation-duration:1.25s}.eq i:nth-child(5n){animation-duration:.75s}
+.tboard.live .eq i{animation-duration:.38s}
+@keyframes eqb{from{height:10%}to{height:100%}}
+.tnotes{position:absolute;inset:0;z-index:1;pointer-events:none}
+.tnotes span{position:absolute;bottom:6px;color:#f2c230;opacity:0;font-size:17px;animation:tfl 5.2s linear infinite}
+.tnotes span:nth-child(1){left:7%;animation-delay:0s}.tnotes span:nth-child(2){left:22%;animation-delay:1.7s;font-size:14px}
+.tnotes span:nth-child(3){left:78%;animation-delay:.9s}.tnotes span:nth-child(4){left:90%;animation-delay:2.8s;font-size:20px}
+.tnotes span:nth-child(5){left:58%;animation-delay:3.9s;font-size:13px}
+@keyframes tfl{0%{transform:translateY(0) rotate(-8deg);opacity:0}12%{opacity:.95}78%{opacity:.75}100%{transform:translateY(-96px) rotate(12deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.eq i,.tnotes span{animation:none}.tnotes span{opacity:.55}}
 </style></head><body><main>
-<h1>🎼 無理数ミュージックメーカー</h1>
-<p class="s">無理数の小数の並び（円周率など）から、メロディー・リズム・歌詞を作ります。</p>
+<header class="tboard" id="tboard"><div class="eq" aria-hidden="true"><i style="animation-delay:-0.00s"></i><i style="animation-delay:-0.37s"></i><i style="animation-delay:-0.74s"></i><i style="animation-delay:-0.11s"></i><i style="animation-delay:-0.48s"></i><i style="animation-delay:-0.85s"></i><i style="animation-delay:-0.22s"></i><i style="animation-delay:-0.59s"></i><i style="animation-delay:-0.96s"></i><i style="animation-delay:-0.33s"></i><i style="animation-delay:-0.70s"></i><i style="animation-delay:-0.07s"></i><i style="animation-delay:-0.44s"></i><i style="animation-delay:-0.81s"></i><i style="animation-delay:-0.18s"></i><i style="animation-delay:-0.55s"></i></div><div class="tnotes" aria-hidden="true"><span>♪</span><span>♫</span><span>♪</span><span>♩</span><span>♫</span></div><h1>無理数ミュージックメーカー</h1>
+<p class="s">無理数の小数の並び（円周率など）から、メロディー・リズム・歌詞を作ります。</p></header>
 
 <div class="c"><details open><summary>🔰 使い方（3ステップ）</summary><ol><li>「無理数」と「ジャンル」を選ぶ</li><li><b>▶ 作って再生</b>を押す（音が鳴ります）</li><li>気に入ったら<b>💾書き出し</b>へ（歌詞は自動で付きます）。<b>🎲</b>で別の曲に変身！</li></ol><p class="n">無理数は小数が終わらず、並びに規則がありません。その「予測できない数字」が、そのままメロディーになります。</p></details></div>
 <div class="c">
@@ -122,7 +138,7 @@ const ch=`<h4>サビ</h4>${nm=="自由入力"?"数字":nm}、終わらない旋�
 return sec("Aメロ",4)+sec("Bメロ",2)+ch}
 function draw(){const r=$("roll");r.innerHTML='<div id="ph"></div>';const kb=$("kb");kb.innerHTML="";const KK=[0,1,0,1,0,0,1,0,1,0,1,0];for(let pc=0;pc<12;pc++){const e=document.createElement("i");if(KK[pc])e.className="bk";e.id="k"+pc;kb.appendChild(e)}$("pd").innerHTML=notes.map((n,j)=>'<span id="p'+j+'">'+n.dg+'</span>').join("");const mn=Math.min(...notes.map(n=>n.semi)),mx=Math.max(...notes.map(n=>n.semi));
 notes.forEach((n,j)=>{if(n.rest)return;const e=document.createElement("i");e.id="n"+j;e.style.left=(n.t/N()*100)+"%";e.style.width=(n.dur/N()*100-.4)+"%";e.style.top=(8+(mx-n.semi)/Math.max(1,mx-mn)*108)+"px";r.appendChild(e)})}
-function stop(){tm.forEach(clearTimeout);tm=[];if(ctx){ctx.close();ctx=null}OUT=null;$("play").textContent="▶ 作って再生";document.querySelectorAll("#roll i.on,#pd span.on,#ch span.on,#kb i.on,#apt tr.on").forEach(e=>e.classList.remove("on"));const ph=$("ph");if(ph)ph.style.opacity=0;$("apl").textContent="▶ 近似を聴き比べ"}
+function stop(){tm.forEach(clearTimeout);tm=[];if(ctx){ctx.close();ctx=null}OUT=null;const tb=$("tboard");if(tb)tb.classList.remove("live");$("play").textContent="▶ 作って再生";document.querySelectorAll("#roll i.on,#pd span.on,#ch span.on,#kb i.on,#apt tr.on").forEach(e=>e.classList.remove("on"));const ph=$("ph");if(ph)ph.style.opacity=0;$("apl").textContent="▶ 近似を聴き比べ"}
 let OUT=null,CURT="";
 function chain(c){const g0=c.createGain();g0.gain.value=.9;const cp=c.createDynamicsCompressor();g0.connect(cp);cp.connect(c.destination);
 const cv=c.createConvolver(),ir=c.createBuffer(2,c.sampleRate*1.3,c.sampleRate);
@@ -142,7 +158,7 @@ for(let t=0;t<N();t++){if(g.d&&t%4==0)kick(t0+t*sp);if(g.d>=1)hat(t0+t*sp,t%2?.0
 let LOOP=false;
 function play(){stop();const g=G[$("gen").value],m=build();notes=m.notes;draw();
 $("lyr").innerHTML=lyrics();
-const s=digs(),a=+$("st").value;CURT=`${$("num").value}の旋律 No.${s.slice(a,a+4)}`;$("stitle").textContent="🎼 「"+CURT+"」";
+const s=digs(),a=+$("st").value;CURT=`${$("num").value}の旋律 No.${s.slice(a,a+4)}`;$("stitle").textContent="🎼 「"+CURT+"」";$("tboard").classList.add("live");
 ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state=="suspended")ctx.resume();OUT=chain(ctx);const sp=60/$("bpm").value/2,t0=ctx.currentTime+.1;sched(m,g,sp,t0,$("gen").value);
 const kk=+$("key").value;
 notes.forEach((n,j)=>{const sw=(n.t%2==1)?g.sw*sp:0,at=t0+n.t*sp+sw;
