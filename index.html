@@ -70,12 +70,13 @@ button.b{background:var(--ac2);color:#fff}button.o{background:transparent;color:
 <label>開始する桁：<span id="sv">0</span></label><input type="range" id="st" min="0" max="60" value="0">
 <div class="g"><div><label>長さ</label><select id="len"><option value="2">短い（2小節）</option><option value="4" selected>ふつう（4小節）</option><option value="8">長い（8小節）</option></select></div><div><label>音色</label><select id="ins"><option value="">ジャンル標準</option><option value="sine">やわらか</option><option value="triangle">まろやか</option><option value="sawtooth">シンセ</option><option value="square">8bit</option></select></div></div><label>テンポ：<span id="bv"></span> BPM</label><input type="range" id="bpm" min="60" max="180">
 <label>歌詞テーマ</label><select id="th"><option>夜</option><option>海</option><option>恋</option><option>旅</option><option>空</option><option>森</option></select>
-<div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
+<label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞の「かな」の音を1音ずつメロディーに割り当てて歌います（漢字の部分は読み飛ばします）。</p><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
 
 <div class="abar"><div class="g"><button id="play">▶ 作って再生</button><button class="b" id="shuf">🎲 ランダム桁</button></div><div class="g" style="margin-top:8px"><button class="o" id="ex">💾 書き出し（曲と歌詞）</button><button class="o" id="sh">📤 結果をシェア</button></div></div>
 
 <div class="c"><div style="display:flex;justify-content:space-between;align-items:center"><div id="stitle">🎼 まだ作っていません</div><button class="o" id="loop" style="width:auto;padding:5px 10px;font-size:12.5px">🔁 ループ</button></div><div id="roll"><div id="ph"></div></div><div id="pd"></div><div id="kb"></div><div class="n" id="info" style="margin-top:6px"></div><div class="n" id="ch"></div></div>
 <div class="c"><div style="display:flex;justify-content:space-between;align-items:center"><b>📝 歌詞</b><button class="o" id="cp" style="width:auto;padding:6px 12px;font-size:13px">コピー</button></div><div id="lyr"></div></div>
+<div class="c"><b>🎙 カラオケ録音</b><p class="n">伴奏に合わせて歌うと、録音して一緒に再生できます。スピーカーの音がマイクに入るので、イヤホンの使用がおすすめです。歌声（シンセ）はオフでの録音がおすすめです。</p><button class="b" id="krec">🎙 録音して歌う</button><div id="kui" style="display:none;margin-top:8px"><audio id="kaudio" controls style="width:100%"></audio><button class="o" id="ksave" style="margin-top:6px">💾 歌声つきで保存（WAV）</button></div><div class="n" id="kmsg" style="margin-top:6px"></div></div>
 <div class="c"><b>🔬 近似を聴き比べ</b><p class="n">無理数を分数で近づけると、音程がどう変わるかを聴けます。√2は十二平均律の「半オクターブ」にちょうど当たる音程です。</p><div class="g"><select id="ap"></select><button class="b" id="apl">▶ 近似を聴き比べ</button></div><table id="apt"></table></div>
 <div class="c t"><details open><summary>📜 無理数と音楽の数学史</summary>
 <p><b>前6〜5世紀ごろ</b>　ピタゴラス教団は「万物は整数の比」と考え、弦の長さの比でドレミを作りました（ピタゴラス音律）。</p>
@@ -155,11 +156,31 @@ function sched(m,g,sp,t0,gn){m.notes.forEach(n=>{if(n.rest)return;const sw=(n.t%
 m.chords.forEach(c=>{c.tn.forEach(x=>tone(freq(x),t0+c.t*sp,sp*7.5,"triangle",.06));tone(freq(c.r-12),t0+c.t*sp,sp*7.5,"triangle",.18);
 for(let stp=0;stp<8;stp+=2)tone(freq(c.r-12+(stp==4?7:0)),t0+(c.t+stp)*sp,sp*1.7,"sine",.13)});
 for(let t=0;t<N();t++){if(g.d&&t%4==0)kick(t0+t*sp);if(g.d>=1)hat(t0+t*sp,t%2?.028:.05);if((gn=="ポップ"||gn=="ロック")&&t%8==4)snare(t0+t*sp);if(g.d==2&&t%2==1)hat(t0+t*sp,.06)}}
+const FORM={a:[730,1090,2440],i:[270,2290,3010],u:[300,870,2240],e:[530,1840,2480],o:[570,840,2410]};
+const VOICES={f:{scale:1.15,wave:"sawtooth",vib:.006},m:{scale:.82,wave:"sawtooth",vib:.005},c:{scale:1.38,wave:"sawtooth",vib:.004},r:{scale:1,wave:"square",vib:0}};
+const KANA={};[["あa v","いi v","うu v","えe v","おo v","かa t","きi t","くu t","けe t","こo t","さa s","しi s","すu s","せe s","そo s","たa t","ちi t","つu t","てe t","とo t","なa n","にi n","ぬu n","ねe n","のo n","はa h","ひi h","ふu h","へe h","ほo h","まa n","みi n","むu n","めe n","もo n","やa v","ゆu v","よo v","らa v","りi v","るu v","れe v","ろo v","わa v","をo v","がa v","ぎi v","ぐu v","げe v","ごo v","ざa s","じi s","ずu s","ぜe s","ぞo s","だa t","ぢi t","づu t","でe t","どo t","ばa t","びi t","ぶu t","べe t","ぼo t","ぱa t","ぴi t","ぷu t","ぺe t","ぽo t","んu n"],
+["アa v","イi v","ウu v","エe v","オo v","カa t","キi t","クu t","ケe t","コo t","サa s","シi s","スu s","セe s","ソo s","タa t","チi t","ツu t","テe t","トo t","ナa n","ニi n","ヌu n","ネe n","ノo n","ハa h","ヒi h","フu h","ヘe h","ホo h","マa n","ミi n","ムu n","メe n","モo n","ヤa v","ユu v","ヨo v","ラa v","リi v","ルu v","レe v","ロo v","ワa v","ヲo v","ガa v","ギi v","グu v","ゲe v","ゴo v","ザa s","ジi s","ズu s","ゼe s","ゾo s","ダa t","ヂi t","ヅu t","デe t","ドo t","バa t","ビi t","ブu t","ベe t","ボo t","パa t","ピi t","プu t","ペe t","ポo t","ンu n"]].flat().forEach(x=>{KANA[x[0]]={v:x[1],t:x[3]}});
+function lyricMorae(){const txt=$("lyr").innerText.split(/\n+/).map(x=>x.trim()).filter(x=>x&&!/^(Aメロ|Bメロ|サビ)$/.test(x)).join("");
+const small="ゃゅょャュョァィゥェォ",out=[];let pv="a";
+for(const ch of txt){if(small.includes(ch))continue;if(ch=="ー"){out.push({v:pv,t:"v"});continue}if(ch=="っ"){out.push({v:pv,t:"gap"});continue}const k=KANA[ch];if(k){pv=k.v;out.push(k)}}return out}
+function voiceNote(f,t,d,mo,V,pf){const o=ctx.createOscillator();o.type=V.wave;
+if(pf>0){o.frequency.setValueAtTime(pf,t);o.frequency.exponentialRampToValueAtTime(f,t+.05)}else o.frequency.setValueAtTime(f,t);
+let lfo=null;if(V.vib>0){lfo=ctx.createOscillator();lfo.frequency.value=5.5;const lg=ctx.createGain();lg.gain.value=f*V.vib;lfo.connect(lg);lg.connect(o.frequency);lfo.start(t);lfo.stop(t+d+.05)}
+const g=ctx.createGain();const dl=mo.t=="s"?.07:mo.t=="h"?.06:mo.t=="t"?.045:0;const vs=t+dl,vd=Math.max(.08,d-dl);
+g.gain.setValueAtTime(0,vs);g.gain.linearRampToValueAtTime(.30,vs+.04);g.gain.setValueAtTime(.30,Math.max(vs+.04,vs+vd-.07));g.gain.exponentialRampToValueAtTime(.001,vs+vd);
+const fm=FORM[mo.v];[.95,.42,.18].forEach((gv,ix)=>{const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=fm[ix]*V.scale;bp.Q.value=ix==0?5:ix==1?7:9;const bg=ctx.createGain();bg.gain.value=gv;o.connect(bp);bp.connect(bg);bg.connect(g)});
+g.connect(dest());o.start(t);o.stop(t+d+.05);
+if(mo.t=="s")noise(t,.09,.10,5200);else if(mo.t=="h")noise(t,.07,.07,1300);else if(mo.t=="t")noise(t,.035,.13,2600);
+else if(mo.t=="n"){const so=ctx.createOscillator(),sg=ctx.createGain(),lp=ctx.createBiquadFilter();so.type="sine";so.frequency.value=f;lp.type="lowpass";lp.frequency.value=520;sg.gain.setValueAtTime(.10,t);sg.gain.exponentialRampToValueAtTime(.001,t+Math.min(.12,d));so.connect(lp);lp.connect(sg);sg.connect(dest());so.start(t);so.stop(t+Math.min(.14,d+.02))}
+return f}
+let NOSING=false;
+function singSong(m,g,sp,t0){const vs=$("voice").value;if(vs=="off"||NOSING)return;const V=VOICES[vs];if(!V)return;const mo=lyricMorae();if(!mo.length)return;let mi=0,pf=0;
+m.notes.forEach(n=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp:0;const mm=mo[mi++%mo.length];pf=voiceNote(freq(n.semi),t0+n.t*sp+sw,n.dur*sp*.96,mm,V,pf)})}
 let LOOP=false;
 function play(){stop();const g=G[$("gen").value],m=build();notes=m.notes;draw();
 $("lyr").innerHTML=lyrics();
 const s=digs(),a=+$("st").value;CURT=`${$("num").value}の旋律 No.${s.slice(a,a+4)}`;$("stitle").textContent="🎼 「"+CURT+"」";$("tboard").classList.add("live");
-ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state=="suspended")ctx.resume();OUT=chain(ctx);const sp=60/$("bpm").value/2,t0=ctx.currentTime+.1;sched(m,g,sp,t0,$("gen").value);
+ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state=="suspended")ctx.resume();OUT=chain(ctx);const sp=60/$("bpm").value/2,t0=ctx.currentTime+.1;sched(m,g,sp,t0,$("gen").value);singSong(m,g,sp,t0);
 const kk=+$("key").value;
 notes.forEach((n,j)=>{const sw=(n.t%2==1)?g.sw*sp:0,at=t0+n.t*sp+sw;
 tm.push(setTimeout(()=>{const e=$("n"+j);document.querySelectorAll("#roll i.on,#pd span.on,#kb i.on").forEach(x=>x.classList.remove("on"));if(e)e.classList.add("on");$("p"+j).classList.add("on");const ph=$("ph");ph.style.opacity=.85;ph.style.left=(n.t/N()*100)+"%";const ke=$("k"+((kk+n.semi)%12));if(ke&&!n.rest)ke.classList.add("on")},(at-ctx.currentTime)*1000))});
@@ -180,7 +201,7 @@ const bp=Math.round(6e7/$("bpm").value),tr=[0,255,81,3,bp>>16&255,bp>>8&255,bp&2
 ev.forEach(([t,b])=>{tr.push(...vlq(t-last),...b);last=t});tr.push(0,255,47,0);
 const u=n=>[n>>>24,n>>16&255,n>>8&255,n&255];
 return new Uint8Array([77,84,104,100,0,0,0,6,0,0,0,1,1,224,77,84,114,107,...u(tr.length),...tr])}
-async function wav(m,g){const sp=60/$("bpm").value/2,sr=44100,old=ctx,oldOut=OUT;ctx=new OfflineAudioContext(1,Math.ceil(sr*(N()*sp+1.5)),sr);OUT=chain(ctx);sched(m,g,sp,.05,$("gen").value);
+async function wav(m,g){const sp=60/$("bpm").value/2,sr=44100,old=ctx,oldOut=OUT;ctx=new OfflineAudioContext(1,Math.ceil(sr*(N()*sp+1.5)),sr);OUT=chain(ctx);sched(m,g,sp,.05,$("gen").value);singSong(m,g,sp,.05);
 const b=await ctx.startRendering();ctx=old;OUT=oldOut;const d=b.getChannelData(0),n=d.length,o=new DataView(new ArrayBuffer(44+n*2));
 const w=(p,s)=>[...s].forEach((c,i)=>o.setUint8(p+i,c.charCodeAt(0)));w(0,"RIFF");o.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");o.setUint32(16,16,true);o.setUint16(20,1,true);o.setUint16(22,1,true);o.setUint32(24,sr,true);o.setUint32(28,sr*2,true);o.setUint16(32,2,true);o.setUint16(34,16,true);w(36,"data");o.setUint32(40,n*2,true);
 for(let i=0;i<n;i++)o.setInt16(44+i*2,Math.max(-1,Math.min(1,d[i]))*32767,true);return new Uint8Array(o.buffer)}
@@ -208,5 +229,35 @@ tm.push(setTimeout(()=>{document.querySelectorAll("#apt tr.on").forEach(e=>e.cla
 $("apl").textContent="■ 停止";tm.push(setTimeout(stop,(list.length*2.4+.5)*1000))};
 $("bd").onchange=()=>{const v=$("bd").value.replace(/\D/g,"");if(!v)return;$("num").value="自由入力";$("cust").value=v;ui();play()};
 $("sh").onclick=async()=>{const t=`無理数ミュージックメーカーで曲を作りました🎼 「${CURT}」 ${$("num").value}×${$("gen").value} ${$("ch").textContent}`;try{await navigator.share({title:"無理数ミュージックメーカー",text:t,url:location.href})}catch(e){try{await navigator.clipboard.writeText(t+" "+location.href);$("sh").textContent="コピーしました"}catch(e2){}}};
+function encWav(b){const nch=Math.min(2,b.numberOfChannels),sr=b.sampleRate,n=b.length,o=new DataView(new ArrayBuffer(44+n*2*nch));
+const w=(p,x)=>[...x].forEach((c,i)=>o.setUint8(p+i,c.charCodeAt(0)));w(0,"RIFF");o.setUint32(4,36+n*2*nch,true);w(8,"WAVEfmt ");o.setUint32(16,16,true);o.setUint16(20,1,true);o.setUint16(22,nch,true);o.setUint32(24,sr,true);o.setUint32(28,sr*2*nch,true);o.setUint16(32,2*nch,true);o.setUint16(34,16,true);w(36,"data");o.setUint32(40,n*2*nch,true);
+const chs=[];for(let c=0;c<nch;c++)chs.push(b.getChannelData(c));
+for(let i=0;i<n;i++)for(let c=0;c<nch;c++)o.setInt16(44+(i*nch+c)*2,Math.max(-1,Math.min(1,chs[c][i]))*32767,true);
+return new Uint8Array(o.buffer)}
+let KREC=null;
+function karaStop(){if(!KREC||!KREC.recording)return;KREC.recording=false;clearTimeout(KREC.timer);if(ctx)stop();try{KREC.rec.stop()}catch(e){}$("krec").textContent="🎙 録音して歌う"}
+async function karaMix(blob){$("kmsg").textContent="ミックスしています…";
+try{const ac=new (window.AudioContext||window.webkitAudioContext)();
+const vbuf=await ac.decodeAudioData(await blob.arrayBuffer());
+const m=build(),g=G[$("gen").value];NOSING=true;const awav=await wav(m,g);NOSING=false;
+const ab=await ac.decodeAudioData(awav.buffer.slice(awav.byteOffset,awav.byteOffset+awav.byteLength));
+const len=Math.max(vbuf.duration,ab.duration)+.2,off=new OfflineAudioContext(2,Math.ceil(44100*len),44100);
+const s1=off.createBufferSource();s1.buffer=ab;const g1=off.createGain();g1.gain.value=.85;s1.connect(g1);g1.connect(off.destination);s1.start(0);
+const s2=off.createBufferSource();s2.buffer=vbuf;const g2=off.createGain();g2.gain.value=1;s2.connect(g2);g2.connect(off.destination);s2.start(0,.18);
+const mixed=await off.startRendering();(KREC=KREC||{}).wav=encWav(mixed);
+$("kaudio").src=URL.createObjectURL(new Blob([KREC.wav],{type:"audio/wav"}));$("kui").style.display="block";
+$("kmsg").textContent="録音できました。下のプレーヤーで聴けます。タイミングが少しずれることがあります。";ac.close()}
+catch(e){NOSING=false;$("kmsg").textContent="ミックスに失敗しました。もう一度お試しください。"}}
+$("krec").onclick=async()=>{if(KREC&&KREC.recording){karaStop();return}
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder=="undefined"){$("kmsg").textContent="この端末・ブラウザでは録音に対応していません。";return}
+let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){$("kmsg").textContent="マイクを使えませんでした。ブラウザのマイク許可をご確認ください。";return}
+const mime=["audio/mp4","audio/webm;codecs=opus","audio/webm"].find(x=>MediaRecorder.isTypeSupported(x))||"";
+const rec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);const chunks=[];
+rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+rec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());karaMix(new Blob(chunks,{type:rec.mimeType||"audio/mp4"}))};
+KREC={rec:rec,recording:true,wav:null};$("krec").textContent="■ 録音を止める";$("kmsg").textContent="録音中です。曲に合わせて歌ってください。";
+rec.start(200);if(ctx)stop();play();
+const totalMs=(N()*(60/$("bpm").value/2)+1.2)*1000;KREC.timer=setTimeout(()=>{if(KREC&&KREC.recording)karaStop()},LOOP?totalMs*3:totalMs)};
+$("ksave").onclick=()=>{if(KREC&&KREC.wav)DL.save({filename:"karaoke.wav",data:new Blob([KREC.wav],{type:"audio/wav"})})};
 ui();notes=build().notes;draw();$("lyr").innerHTML=lyrics();
 </script></body></html>
