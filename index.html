@@ -70,7 +70,7 @@ button.b{background:var(--ac2);color:#fff}button.o{background:transparent;color:
 <label>開始する桁：<span id="sv">0</span></label><input type="range" id="st" min="0" max="60" value="0">
 <div class="g"><div><label>長さ</label><select id="len"><option value="2">短い（2小節）</option><option value="4" selected>ふつう（4小節）</option><option value="8">長い（8小節）</option></select></div><div><label>音色</label><select id="ins"><option value="">ジャンル標準</option><option value="sine">やわらか</option><option value="triangle">まろやか</option><option value="sawtooth">シンセ</option><option value="square">8bit</option></select></div></div><label>テンポ：<span id="bv"></span> BPM</label><input type="range" id="bpm" min="60" max="180">
 <label>歌詞テーマ</label><select id="th"><option>夜</option><option>海</option><option>恋</option><option>旅</option><option>空</option><option>森</option></select>
-<label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞の「かな」の音を1音ずつメロディーに割り当てて歌います（漢字の部分は読み飛ばします）。</p><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
+<label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞（ひらがな）の音を1音ずつメロディーに割り当てて、全文を歌います。</p><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
 
 <div class="abar"><div class="g"><button id="play">▶ 作って再生</button><button class="b" id="shuf">🎲 ランダム桁</button></div><div class="g" style="margin-top:8px"><button class="o" id="ex">💾 書き出し（曲と歌詞）</button><button class="o" id="sh">📤 結果をシェア</button></div></div>
 
@@ -101,19 +101,19 @@ const D={
 "自由入力":""};
 const INT={"π":"3","e":"2","√2":"1","√3":"1","φ":"1"};
 const G={
-"ポップ":{s:[0,2,4,5,7,9,11],b:120,w:"triangle",d:1,sw:0,m:"明るい"},
-"ジャズ":{s:[0,2,3,5,7,9,10],b:96,w:"sine",d:1,sw:.3,m:"大人"},
+"ポップ":{s:[0,2,4,5,7,9,11],b:120,w:"triangle",d:1,sw:0,m:"あかるい"},
+"ジャズ":{s:[0,2,3,5,7,9,10],b:96,w:"sine",d:1,sw:.3,m:"おとな"},
 "ローファイ":{s:[0,3,5,7,10],b:78,w:"triangle",d:1,sw:.15,m:"まったり"},
-"クラシック":{s:[0,2,4,5,7,9,11],b:84,w:"sine",d:0,sw:0,m:"優雅"},
-"ロック":{s:[0,3,5,7,10],b:132,w:"sawtooth",d:2,sw:0,m:"熱い"},
-"演歌":{s:[0,1,5,7,8],b:72,w:"triangle",d:0,sw:0,m:"切ない"},
-"テクノ":{s:[0,2,3,5,7,8,10],b:128,w:"square",d:2,sw:0,m:"未来"},
-"ゲーム":{s:[0,2,4,7,9],b:150,w:"square",d:1,sw:0,m:"冒険"}};
+"クラシック":{s:[0,2,4,5,7,9,11],b:84,w:"sine",d:0,sw:0,m:"ゆうが"},
+"ロック":{s:[0,3,5,7,10],b:132,w:"sawtooth",d:2,sw:0,m:"あつい"},
+"演歌":{s:[0,1,5,7,8],b:72,w:"triangle",d:0,sw:0,m:"せつない"},
+"テクノ":{s:[0,2,3,5,7,8,10],b:128,w:"square",d:2,sw:0,m:"みらい"},
+"ゲーム":{s:[0,2,4,7,9],b:150,w:"square",d:1,sw:0,m:"ぼうけん"}};
 const K=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const PY=[1,256/243,9/8,32/27,81/64,4/3,729/512,3/2,128/81,27/16,16/9,243/128];
-const TH={"夜":["夜空","月あかり","街灯","静けさ","星","窓辺"],"海":["波","水平線","潮風","砂浜","貝殻","朝焼け"],"恋":["指先","約束","ぬくもり","手紙","横顔","鼓動"],"旅":["線路","地図","風","丘","駅","まだ見ぬ空"],"空":["雲","青空","飛行機雲","夕焼け","鳥","風の色"],"森":["木漏れ日","苔","せせらぎ","木の実","小鳥","朝霧"]};
-const AJ=["遠い","透明な","終わらない","小さな","まぶしい","無限の","やさしい","揺れる","かすかな","永遠の","静かな","果てしない"];
-const VB=["光ってる","溶けていく","続いてく","きみを呼ぶ","踊りだす","ほどけてく","鳴りひびく","揺れている","そっと笑う","ここにある","歌いだす","瞬いてる"];
+const TH={"夜":["よぞら","つきあかり","がいとう","しずけさ","ほし","まどべ"],"海":["なみ","すいへいせん","しおかぜ","すなはま","かいがら","あさやけ"],"恋":["ゆびさき","やくそく","ぬくもり","てがみ","よこがお","こどう"],"旅":["せんろ","ちず","かぜ","おか","えき","まだみぬそら"],"空":["くも","あおぞら","ひこうきぐも","ゆうやけ","とり","かぜのいろ"],"森":["こもれび","こけ","せせらぎ","このみ","ことり","あさぎり"]};
+const AJ=["とおい","とうめいな","おわらない","ちいさな","まぶしい","むげんの","やさしい","ゆれる","かすかな","えいえんの","しずかな","はてしない"];
+const VB=["ひかってる","とけていく","つづいてく","きみをよぶ","おどりだす","ほどけてく","なりひびく","ゆれている","そっとわらう","ここにある","うたいだす","またたいてる"];
 const $=id=>document.getElementById(id);
 for(const k in D)$("num").add(new Option(k+(k=="自由入力"?"":" "+(INT[k]+"."+D[k].slice(0,6)+"…")),k));
 for(const k in G)$("gen").add(new Option(k,k));
@@ -133,9 +133,9 @@ const chords=[];for(let b=0;b<N()/8;b++){const d=(b==0||b==N()/8-1)?0:+s[(a+b*5+
 return {notes,chords}}
 function lyrics(){const s=digs(),a=+$("st").value,pool=TH[$("th").value],nm=$("num").value,g=G[$("gen").value];let p=a+5;const nx=m=>{const d=+s[p++%s.length];return d%m};
 const line=()=>{const t=nx(4),A=AJ[nx(AJ.length)],n1=pool[nx(pool.length)],n2=pool[nx(pool.length)],v=VB[nx(VB.length)];
-return [`${A}${n1}が${v}`,`${n1}と${n2}のあいだで`,`${n1}は${v}`,`${A}${n1}を抱きしめて`][t]};
+return [`${A}${n1}が${v}`,`${n1}と${n2}のあいだで`,`${n1}は${v}`,`${A}${n1}をだきしめて`][t]};
 const sec=(h,n)=>`<h4>${h}</h4>`+Array.from({length:n},line).join("<br>");
-const ch=`<h4>サビ</h4>${nm=="自由入力"?"数字":nm}、終わらない旋律<br>${line()}<br>${line()}<br>${g.m}な${pool[nx(pool.length)]}の中で、ずっと`;
+const ch=`<h4>サビ</h4>${nm=="自由入力"?"すうじ":nm}、おわらないせんりつ<br>${line()}<br>${line()}<br>${g.m}な${pool[nx(pool.length)]}のなかで、ずっと`;
 return sec("Aメロ",4)+sec("Bメロ",2)+ch}
 function draw(){const r=$("roll");r.innerHTML='<div id="ph"></div>';const kb=$("kb");kb.innerHTML="";const KK=[0,1,0,1,0,0,1,0,1,0,1,0];for(let pc=0;pc<12;pc++){const e=document.createElement("i");if(KK[pc])e.className="bk";e.id="k"+pc;kb.appendChild(e)}$("pd").innerHTML=notes.map((n,j)=>'<span id="p'+j+'">'+n.dg+'</span>').join("");const mn=Math.min(...notes.map(n=>n.semi)),mx=Math.max(...notes.map(n=>n.semi));
 notes.forEach((n,j)=>{if(n.rest)return;const e=document.createElement("i");e.id="n"+j;e.style.left=(n.t/N()*100)+"%";e.style.width=(n.dur/N()*100-.4)+"%";e.style.top=(8+(mx-n.semi)/Math.max(1,mx-mn)*108)+"px";r.appendChild(e)})}
