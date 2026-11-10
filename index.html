@@ -72,6 +72,23 @@ button.b{background:var(--ac2);color:#fff}button.o{background:transparent;color:
 <label>小節数（自分で決める）：<span id="bsv">4</span>小節</label><input type="range" id="bars" min="1" max="32" value="4"><label>歌詞テーマ</label><select id="th"><option>夜</option><option>海</option><option>恋</option><option>旅</option><option>空</option><option>森</option></select>
 <label>🎤 歌声（メロディーに合わせて歌います）</label><select id="voice"><option value="off">オフ（歌わない）</option><option value="f">女声</option><option value="m">男声</option><option value="c">子どもの声</option><option value="r">ロボット</option></select><p class="n" style="margin:4px 0 0">歌詞（ひらがな）の音を1音ずつメロディーに割り当てて、全文を歌います。</p><label>🔁 リフレイン（曲の構成としての繰り返し）</label><select id="ref"><option value="0">なし</option><option value="1">メロディーを2回くり返す</option><option value="2">メロディーを3回くり返す</option><option value="3">サビ（後半）をもう一度くり返す</option></select><div id="digits" style="margin-top:10px"></div><div class="n" id="fact" style="margin-top:6px"></div></div>
 
+<div class="c"><details><summary>🎛 詳細設定（ミキサー・エフェクト・構成）</summary>
+<label>メロディー音量：<span id="v-mix-mel">100</span>%</label><input type="range" id="mix-mel" min="0" max="150" value="100">
+<label>コード音量：<span id="v-mix-cho">100</span>%</label><input type="range" id="mix-cho" min="0" max="150" value="100">
+<label>ベース音量：<span id="v-mix-bas">100</span>%</label><input type="range" id="mix-bas" min="0" max="150" value="100">
+<label>ドラム音量：<span id="v-mix-drm">100</span>%</label><input type="range" id="mix-drm" min="0" max="150" value="100">
+<label>歌声音量：<span id="v-mix-vox">100</span>%</label><input type="range" id="mix-vox" min="0" max="150" value="100">
+<label>残響（リバーブ）：<span id="v-rev">32</span>%</label><input type="range" id="rev" min="0" max="100" value="32">
+<label>ディレイ（やまびこ）：<span id="v-dly">0</span>%</label><input type="range" id="dly" min="0" max="100" value="0">
+<label>コーラス（広がり）：<span id="v-cho">0</span>%</label><input type="range" id="cho" min="0" max="100" value="0">
+<div class="g"><div><label>コード進行</label><select id="prog"><option value="auto">おまかせ（数字で生成）</option><option value="oukan">王道（I→V→vi→IV）</option><option value="gyaku">小室系（vi→IV→I→V）</option><option value="canon">カノン進行</option><option value="shittori">しっとり（I→vi→IV→V）</option></select></div>
+<div><label>曲の構成</label><select id="form"><option value="auto">おまかせ</option><option value="intro">イントロつき（最初は伴奏だけ）</option><option value="outro">アウトロつき（最後は伴奏で締める）</option><option value="both">イントロ＋アウトロ</option></select></div></div>
+<label>ゆらぎ（タイミング・強弱）：<span id="v-hum">0</span>%</label><input type="range" id="hum" min="0" max="100" value="0">
+<label>スウィング倍率：<span id="v-swg">100</span>%</label><input type="range" id="swg" min="0" max="200" value="100">
+<label>設定プリセット</label><div class="g"><input type="text" id="psname" placeholder="プリセット名"><button class="o" id="pssave">保存</button></div>
+<div class="g" style="margin-top:6px"><select id="pslist"></select><button class="o" id="psload">読み込む</button></div>
+<button class="o" id="psdel" style="margin-top:6px">選んだプリセットを削除</button>
+</details></div>
 <div class="abar"><div class="g"><button id="play">▶ 作って再生</button><button class="b" id="shuf">🎲 ランダム桁</button></div><div class="g" style="margin-top:8px"><button class="o" id="ex">💾 書き出し（曲と歌詞）</button><button class="o" id="sh">📤 結果をシェア</button></div></div>
 
 <div class="c"><div style="display:flex;justify-content:space-between;align-items:center"><div id="stitle">🎼 まだ作っていません</div><button class="o" id="loop" style="width:auto;padding:5px 10px;font-size:12.5px">🔁 ループ</button></div><div id="roll"><div id="ph"></div></div><div id="pd"></div><div id="kb"></div><div class="n" id="info" style="margin-top:6px"></div><div class="n" id="ch"></div></div>
@@ -131,13 +148,17 @@ function freq(semi){const k=+$("key").value,base=261.6256*Math.pow(2,k/12);const
 function build(){const g=G[$("gen").value],s=digs(),a=+$("st").value,L=g.s.length,NB=+$("bars").value*8;notes=[];let t=0,i=0;
 while(t<NB&&i<NB+8){const d=+s[(a+i)%s.length];const dur=(d%4==3)?2:1;const rest=d==0;
 const semi=g.s[d%L]+(d>4?12:0);notes.push({t,dur,semi,rest,dg:d});t+=dur;i++}
-const chords=[];for(let b=0;b<NB/8;b++){const d=(b==0||b==NB/8-1)?0:+s[(a+b*5+3)%s.length]%L;const r=g.s[d],q=i=>{const j=d+i;return g.s[j%L]+12*Math.floor(j/L)};const th=q(2)-r,nm=K[(+$("key").value+r)%12]+(th==3?"m":th==4?"":th<3?"sus2":"sus4");chords.push({t:b*8,r,tn:[r,q(2),q(4)],nm})}
+const PROGS={oukan:[0,4,5,3],gyaku:[5,3,0,4],canon:[0,4,5,2,3,0,3,4],shittori:[0,5,3,4]};const pat=PROGS[$("prog").value];
+const chords=[];for(let b=0;b<NB/8;b++){const d=pat?pat[b%pat.length]%L:(b==0||b==NB/8-1)?0:+s[(a+b*5+3)%s.length]%L;const r=g.s[d],q=i=>{const j=d+i;return g.s[j%L]+12*Math.floor(j/L)};const th=q(2)-r,nm=K[(+$("key").value+r)%12]+(th==3?"m":th==4?"":th<3?"sus2":"sus4");chords.push({t:b*8,r,tn:[r,q(2),q(4)],nm})}
 const mode=$("ref").value,reps=[];
 if(mode=="1"||mode=="2"){const R=+mode+1;for(let r=1;r<R;r++)reps.push({from:0,len:NB,at:NB*r});TOTAL=NB*R}
 else if(mode=="3"){const half=NB/2;reps.push({from:half,len:half,at:NB});TOTAL=NB+half}
 else TOTAL=NB;
 reps.forEach(rp=>{const addN=notes.filter(n=>n.t>=rp.from&&n.t<rp.from+rp.len).map(n=>({...n,t:n.t-rp.from+rp.at}));notes.push(...addN);
 const addC=chords.filter(c=>c.t>=rp.from&&c.t<rp.from+rp.len).map(c=>({...c,t:c.t-rp.from+rp.at}));chords.push(...addC)});
+const fm=$("form").value;
+if(fm=="intro"||fm=="both")notes.forEach(n=>{if(n.t<8)n.rest=true});
+if(fm=="outro"||fm=="both")notes.forEach(n=>{if(n.t>=TOTAL-8)n.rest=true});
 return {notes,chords}}
 function lyrics(){const s=digs(),a=+$("st").value,pool=TH[$("th").value],nm=$("num").value,g=G[$("gen").value];let p=a+5;const nx=m=>{const d=+s[p++%s.length];return d%m};
 const line=()=>{const t=nx(4),A=AJ[nx(AJ.length)],n1=pool[nx(pool.length)],n2=pool[nx(pool.length)],v=VB[nx(VB.length)];
@@ -152,23 +173,32 @@ else if(mode=="3")out+=sabi().replace("<h4>サビ</h4>","<h4>サビ（くり返�
 return out}
 function draw(){const r=$("roll");r.innerHTML='<div id="ph"></div>';const kb=$("kb");kb.innerHTML="";const KK=[0,1,0,1,0,0,1,0,1,0,1,0];for(let pc=0;pc<12;pc++){const e=document.createElement("i");if(KK[pc])e.className="bk";e.id="k"+pc;kb.appendChild(e)}$("pd").innerHTML=notes.map((n,j)=>'<span id="p'+j+'">'+n.dg+'</span>').join("");const mn=Math.min(...notes.map(n=>n.semi)),mx=Math.max(...notes.map(n=>n.semi));
 notes.forEach((n,j)=>{if(n.rest)return;const e=document.createElement("i");e.id="n"+j;e.style.left=(n.t/N()*100)+"%";e.style.width=(n.dur/N()*100-.4)+"%";e.style.top=(8+(mx-n.semi)/Math.max(1,mx-mn)*108)+"px";r.appendChild(e)})}
-function stop(){tm.forEach(clearTimeout);tm=[];if(ctx){ctx.close();ctx=null}OUT=null;const tb=$("tboard");if(tb)tb.classList.remove("live");$("play").textContent="▶ 作って再生";document.querySelectorAll("#roll i.on,#pd span.on,#ch span.on,#kb i.on,#apt tr.on").forEach(e=>e.classList.remove("on"));const ph=$("ph");if(ph)ph.style.opacity=0;$("apl").textContent="▶ 近似を聴き比べ"}
-let OUT=null,CURT="";
+function stop(){tm.forEach(clearTimeout);tm=[];if(ctx){ctx.close();ctx=null}OUT=null;BUS=null;FXN=null;CURBUS=null;const tb=$("tboard");if(tb)tb.classList.remove("live");$("play").textContent="▶ 作って再生";document.querySelectorAll("#roll i.on,#pd span.on,#ch span.on,#kb i.on,#apt tr.on").forEach(e=>e.classList.remove("on"));const ph=$("ph");if(ph)ph.style.opacity=0;$("apl").textContent="▶ 近似を聴き比べ"}
+let OUT=null,CURT="",BUS=null,FXN=null,CURBUS=null;
+const MIX={mel:1,cho:1,bas:1,drm:1,vox:1};
 function chain(c){const g0=c.createGain();g0.gain.value=.9;const cp=c.createDynamicsCompressor();g0.connect(cp);cp.connect(c.destination);
 const cv=c.createConvolver(),ir=c.createBuffer(2,c.sampleRate*1.3,c.sampleRate);
 for(let ch=0;ch<2;ch++){const dd=ir.getChannelData(ch);for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/dd.length,2.6)}
-cv.buffer=ir;const wg=c.createGain();wg.gain.value=.16;g0.connect(wg);wg.connect(cv);cv.connect(cp);return g0}
-function dest(){return OUT||ctx.destination}
+cv.buffer=ir;const wg=c.createGain();wg.gain.value=+$("rev").value/100*.5;g0.connect(wg);wg.connect(cv);cv.connect(cp);
+const dl=c.createDelay(2);dl.delayTime.value=.28;const fb=c.createGain();fb.gain.value=.34;const dg=c.createGain();dg.gain.value=+$("dly").value/100*.45;
+g0.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(dg);dg.connect(cp);
+const cd=c.createDelay(.1);cd.delayTime.value=.018;const lf=c.createOscillator();lf.frequency.value=.7;const ld=c.createGain();ld.gain.value=.004;lf.connect(ld);ld.connect(cd.delayTime);lf.start();
+const cg=c.createGain();cg.gain.value=+$("cho").value/100*.5;g0.connect(cd);cd.connect(cg);cg.connect(cp);
+BUS={};for(const k in MIX){const bg=c.createGain();bg.gain.value=MIX[k];bg.connect(g0);BUS[k]=bg}
+FXN={wet:wg,dly:dg,cho:cg,dlyNode:dl};return g0}
+function dest(){if(CURBUS&&BUS&&BUS[CURBUS])return BUS[CURBUS];return OUT||ctx.destination}
+function hz(i,k){const x=Math.sin(i*127.1+k*311.7)*43758.5453;return x-Math.floor(x)}
 function tone(f,t,d,w,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=w;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(dest());o.start(t);o.stop(t+d+.05)}
 function pluck(f,t,d,w,v){tone(f,t,d,w,v);tone(f*2,t,d*.55,"sine",v*.32);tone(f*3,t,d*.3,"sine",v*.1)}
 let NBUF=null;function noise(t,d,v,hp){if(!NBUF){NBUF=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);const dd=NBUF.getChannelData(0);for(let i=0;i<dd.length;i++)dd[i]=Math.random()*2-1}
 const src=ctx.createBufferSource();src.buffer=NBUF;const fl=ctx.createBiquadFilter();fl.type="highpass";fl.frequency.value=hp;const g=ctx.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);src.connect(fl);fl.connect(g);g.connect(dest());src.start(t);src.stop(t+d+.02)}
 function hat(t,v){noise(t,.05,v,6000)}function snare(t){noise(t,.14,.16,1500)}
 function kick(t){const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(g).connect(dest());o.start(t);o.stop(t+.25)}
-function sched(m,g,sp,t0,gn){m.notes.forEach(n=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp:0;pluck(freq(n.semi+12),t0+n.t*sp+sw,n.dur*sp*.95,$("ins").value||g.w,.17)});
-m.chords.forEach(c=>{c.tn.forEach(x=>tone(freq(x),t0+c.t*sp,sp*7.5,"triangle",.06));tone(freq(c.r-12),t0+c.t*sp,sp*7.5,"triangle",.18);
-for(let stp=0;stp<8;stp+=2)tone(freq(c.r-12+(stp==4?7:0)),t0+(c.t+stp)*sp,sp*1.7,"sine",.13)});
-for(let t=0;t<N();t++){if(g.d&&t%4==0)kick(t0+t*sp);if(g.d>=1)hat(t0+t*sp,t%2?.028:.05);if((gn=="ポップ"||gn=="ロック")&&t%8==4)snare(t0+t*sp);if(g.d==2&&t%2==1)hat(t0+t*sp,.06)}}
+function sched(m,g,sp,t0,gn){const hum=+$("hum").value/100,swf=+$("swg").value/100;CURBUS="mel";
+m.notes.forEach((n,j)=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp*swf:0;pluck(freq(n.semi+12),t0+n.t*sp+sw+(hz(j,1)-.5)*.024*hum,n.dur*sp*.95,$("ins").value||g.w,.17*(1+(hz(j,2)-.5)*.4*hum))});
+m.chords.forEach(c=>{CURBUS="cho";c.tn.forEach(x=>tone(freq(x),t0+c.t*sp,sp*7.5,"triangle",.06));tone(freq(c.r-12),t0+c.t*sp,sp*7.5,"triangle",.18);
+CURBUS="bas";for(let stp=0;stp<8;stp+=2)tone(freq(c.r-12+(stp==4?7:0)),t0+(c.t+stp)*sp,sp*1.7,"sine",.13)});
+CURBUS="drm";for(let t=0;t<N();t++){if(g.d&&t%4==0)kick(t0+t*sp);if(g.d>=1)hat(t0+t*sp,t%2?.028:.05);if((gn=="ポップ"||gn=="ロック")&&t%8==4)snare(t0+t*sp);if(g.d==2&&t%2==1)hat(t0+t*sp,.06)}CURBUS=null}
 const FORM={a:[730,1090,2440],i:[270,2290,3010],u:[300,870,2240],e:[530,1840,2480],o:[570,840,2410]};
 const VOICES={f:{scale:1.15,wave:"sawtooth",vib:.006},m:{scale:.82,wave:"sawtooth",vib:.005},c:{scale:1.38,wave:"sawtooth",vib:.004},r:{scale:1,wave:"square",vib:0}};
 const KANA={};[["あa v","いi v","うu v","えe v","おo v","かa t","きi t","くu t","けe t","こo t","さa s","しi s","すu s","せe s","そo s","たa t","ちi t","つu t","てe t","とo t","なa n","にi n","ぬu n","ねe n","のo n","はa h","ひi h","ふu h","へe h","ほo h","まa n","みi n","むu n","めe n","もo n","やa v","ゆu v","よo v","らa v","りi v","るu v","れe v","ろo v","わa v","をo v","がa v","ぎi v","ぐu v","げe v","ごo v","ざa s","じi s","ずu s","ぜe s","ぞo s","だa t","ぢi t","づu t","でe t","どo t","ばa t","びi t","ぶu t","べe t","ぼo t","ぱa t","ぴi t","ぷu t","ぺe t","ぽo t","んu n"],
@@ -188,12 +218,13 @@ else if(mo.t=="n"){const so=ctx.createOscillator(),sg=ctx.createGain(),lp=ctx.cr
 return f}
 let NOSING=false;
 function singSong(m,g,sp,t0){const vs=$("voice").value;if(vs=="off"||NOSING)return;const V=VOICES[vs];if(!V)return;const mo=lyricMorae();if(!mo.length)return;let mi=0,pf=0;
-m.notes.forEach(n=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp:0;const mm=mo[mi++%mo.length];pf=voiceNote(freq(n.semi),t0+n.t*sp+sw,n.dur*sp*.96,mm,V,pf)})}
+const hum=+$("hum").value/100,swf=+$("swg").value/100;CURBUS="vox";
+m.notes.forEach((n,j)=>{if(n.rest)return;const sw=(n.t%2==1)?g.sw*sp*swf:0;const mm=mo[mi++%mo.length];pf=voiceNote(freq(n.semi),t0+n.t*sp+sw+(hz(j,1)-.5)*.024*hum,n.dur*sp*.96,mm,V,pf)});CURBUS=null}
 let LOOP=false;
 function play(){stop();const g=G[$("gen").value],m=build();notes=m.notes;draw();
 $("lyr").innerHTML=lyrics();
 const s=digs(),a=+$("st").value;CURT=`${$("num").value}の旋律 No.${s.slice(a,a+4)}`;$("stitle").textContent="🎼 「"+CURT+"」";$("tboard").classList.add("live");
-ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state=="suspended")ctx.resume();OUT=chain(ctx);const sp=60/$("bpm").value/2,t0=ctx.currentTime+.1;sched(m,g,sp,t0,$("gen").value);singSong(m,g,sp,t0);
+ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state=="suspended")ctx.resume();OUT=chain(ctx);if(FXN)FXN.dlyNode.delayTime.value=(60/+$("bpm").value)*.75;const sp=60/$("bpm").value/2,t0=ctx.currentTime+.1;sched(m,g,sp,t0,$("gen").value);singSong(m,g,sp,t0);
 const kk=+$("key").value;
 notes.forEach((n,j)=>{const sw=(n.t%2==1)?g.sw*sp:0,at=t0+n.t*sp+sw;
 tm.push(setTimeout(()=>{const e=$("n"+j);document.querySelectorAll("#roll i.on,#pd span.on,#kb i.on").forEach(x=>x.classList.remove("on"));if(e)e.classList.add("on");$("p"+j).classList.add("on");const ph=$("ph");ph.style.opacity=.85;ph.style.left=(n.t/N()*100)+"%";const ke=$("k"+((kk+n.semi)%12));if(ke&&!n.rest)ke.classList.add("on")},(at-ctx.currentTime)*1000))});
@@ -203,19 +234,33 @@ $("ch").innerHTML="コード進行： "+m.chords.map((c,ci)=>`<span id="cs${ci}"
 $("play").onclick=()=>{if(ctx)stop();else play()};
 $("loop").onclick=()=>{LOOP=!LOOP;$("loop").classList.toggle("on",LOOP);$("loop").textContent=LOOP?"🔁 ループ中":"🔁 ループ"};
 $("shuf").onclick=()=>{$("st").value=Math.floor(Math.random()*60);ui();play()};
+["mel","cho","bas","drm","vox"].forEach(k=>{$("mix-"+k).oninput=()=>{MIX[k]=+$("mix-"+k).value/100;$("v-mix-"+k).textContent=$("mix-"+k).value;if(BUS&&BUS[k])BUS[k].gain.value=MIX[k]}});
+$("rev").oninput=()=>{$("v-rev").textContent=$("rev").value;if(FXN)FXN.wet.gain.value=+$("rev").value/100*.5};
+$("dly").oninput=()=>{$("v-dly").textContent=$("dly").value;if(FXN)FXN.dly.gain.value=+$("dly").value/100*.45};
+$("cho").oninput=()=>{$("v-cho").textContent=$("cho").value;if(FXN)FXN.cho.gain.value=+$("cho").value/100*.5};
+$("hum").oninput=()=>{$("v-hum").textContent=$("hum").value};
+$("swg").oninput=()=>{$("v-swg").textContent=$("swg").value};
+const SETIDS=["num","gen","key","tun","st","len","bars","ins","bpm","th","voice","ref","prog","form","hum","swg","rev","dly","cho","mix-mel","mix-cho","mix-bas","mix-drm","mix-vox"];
+function psAll(){try{return JSON.parse(localStorage.getItem("imm-presets")||"{}")}catch(e){return{}}}
+function psList(){const p=psAll(),sel=$("pslist");sel.innerHTML="";Object.keys(p).forEach(n=>sel.add(new Option(n,n)))}
+$("pssave").onclick=()=>{const n=$("psname").value.trim();if(!n){$("psname").focus();return}const p=psAll(),v={};SETIDS.forEach(id=>v[id]=$(id).value);p[n]=v;localStorage.setItem("imm-presets",JSON.stringify(p));psList();$("pslist").value=n;$("pssave").textContent="保存しました";setTimeout(()=>$("pssave").textContent="保存",1500)};
+$("psload").onclick=()=>{const p=psAll(),v=p[$("pslist").value];if(!v)return;SETIDS.forEach(id=>{if(v[id]!=null)$(id).value=v[id]});["mel","cho","bas","drm","vox"].forEach(k=>{$("mix-"+k).dispatchEvent(new Event("input"))});["rev","dly","cho","hum","swg"].forEach(id=>$(id).dispatchEvent(new Event("input")));$("bsv").textContent=$("bars").value;ui();notes=build().notes;draw();$("lyr").innerHTML=lyrics()};
+$("psdel").onclick=()=>{const p=psAll();delete p[$("pslist").value];localStorage.setItem("imm-presets",JSON.stringify(p));psList()};
+psList();
 $("cp").onclick=()=>{const t=$("lyr").innerText;try{navigator.clipboard.writeText(t);$("cp").textContent="コピー済み"}catch(e){}};
 const DL={save:async({filename,data})=>{const a=document.createElement("a");a.href=URL.createObjectURL(data);a.download=filename;a.click()}};
 function vlq(n){const b=[n&127];while(n>>=7)b.unshift((n&127)|128);return b}
-function midi(m){const k=+$("key").value,ev=[],T=240,add=(a,d,p,v,ch)=>{ev.push([a,[0x90|ch,p,v]]);ev.push([a+d,[0x80|ch,p,0]])};
-m.notes.forEach(n=>{if(!n.rest)add(n.t*T,n.dur*T-10,60+k+n.semi+12,90,0)});
-m.chords.forEach(c=>{c.tn.forEach(x=>add(c.t*T,7.5*T,60+k+x,50,1));add(c.t*T,7.5*T,60+k+c.r-12,80,1)});
-ev.sort((a,b)=>a[0]-b[0]||(a[1][0]&240)-(b[1][0]&240));
-const bp=Math.round(6e7/$("bpm").value),tr=[0,255,81,3,bp>>16&255,bp>>8&255,bp&255];let last=0;
-ev.forEach(([t,b])=>{tr.push(...vlq(t-last),...b);last=t});tr.push(0,255,47,0);
-const u=n=>[n>>>24,n>>16&255,n>>8&255,n&255];
-return new Uint8Array([77,84,104,100,0,0,0,6,0,0,0,1,1,224,77,84,114,107,...u(tr.length),...tr])}
-async function wav(m,g){const sp=60/$("bpm").value/2,sr=44100,old=ctx,oldOut=OUT;ctx=new OfflineAudioContext(1,Math.ceil(sr*(N()*sp+1.5)),sr);OUT=chain(ctx);sched(m,g,sp,.05,$("gen").value);singSong(m,g,sp,.05);
-const b=await ctx.startRendering();ctx=old;OUT=oldOut;const d=b.getChannelData(0),n=d.length,o=new DataView(new ArrayBuffer(44+n*2));
+function midi(m){const k=+$("key").value,T=240;
+function track(evs,withTempo){evs.sort((a,b)=>a[0]-b[0]||(a[1][0]&240)-(b[1][0]&240));const tr=[];
+if(withTempo){const bp=Math.round(6e7/$("bpm").value);tr.push(0,255,81,3,bp>>16&255,bp>>8&255,bp&255)}
+let last=0;evs.forEach(([t,b])=>{tr.push(...vlq(t-last),...b);last=t});tr.push(0,255,47,0);
+const u=n=>[n>>>24,n>>16&255,n>>8&255,n&255];return [77,84,114,107,...u(tr.length),...tr]}
+const mel=[],cho=[];
+m.notes.forEach(n=>{if(!n.rest){mel.push([n.t*T,[0x90,60+k+n.semi+12,90]]);mel.push([n.t*T+n.dur*T-10,[0x80,60+k+n.semi+12,0]])}});
+m.chords.forEach(c=>{c.tn.forEach(x=>{cho.push([c.t*T,[0x91,60+k+x,50]]);cho.push([c.t*T+7.5*T,[0x81,60+k+x,0]])});cho.push([c.t*T,[0x91,60+k+c.r-12,80]]);cho.push([c.t*T+7.5*T,[0x81,60+k+c.r-12,0]])});
+return new Uint8Array([77,84,104,100,0,0,0,6,0,1,0,3,1,224,...track([],true),...track(mel,false),...track(cho,false)])}
+async function wav(m,g){const sp=60/$("bpm").value/2,sr=44100,old=ctx,oldOut=OUT,oldBus=BUS,oldFxn=FXN;ctx=new OfflineAudioContext(1,Math.ceil(sr*(N()*sp+1.5)),sr);OUT=chain(ctx);sched(m,g,sp,.05,$("gen").value);singSong(m,g,sp,.05);
+const b=await ctx.startRendering();ctx=old;OUT=oldOut;BUS=oldBus;FXN=oldFxn;CURBUS=null;const d=b.getChannelData(0),n=d.length,o=new DataView(new ArrayBuffer(44+n*2));
 const w=(p,s)=>[...s].forEach((c,i)=>o.setUint8(p+i,c.charCodeAt(0)));w(0,"RIFF");o.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");o.setUint32(16,16,true);o.setUint16(20,1,true);o.setUint16(22,1,true);o.setUint32(24,sr,true);o.setUint32(28,sr*2,true);o.setUint16(32,2,true);o.setUint16(34,16,true);w(36,"data");o.setUint32(40,n*2,true);
 for(let i=0;i<n;i++)o.setInt16(44+i*2,Math.max(-1,Math.min(1,d[i]))*32767,true);return new Uint8Array(o.buffer)}
 function crc(u){let r=-1;for(const b of u){r^=b;for(let k=0;k<8;k++)r=r&1?(r>>>1)^0xEDB88320:r>>>1}return(~r)>>>0}
